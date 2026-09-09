@@ -142,3 +142,10 @@ def chat_endpoint(data: QueryModel):
         "answer": bot_answer,
         "retrieved_context": context
     }
+# دالة وسيطة لاستدعاء الـ Chatbot مباشرة من Streamlit بدون الحاجة لـ HTTP Requests
+def get_answer(question: str) -> str:
+    # إنشاء نموذج مؤقت لتمرير الداتا لنفس منطق الـ endpoint
+    from fastapi import Request
+    query_obj = QueryModel(question=question)
+    response_dict = chat_endpoint(query_obj)
+    return response_dict.get("answer", "No response generated.")
