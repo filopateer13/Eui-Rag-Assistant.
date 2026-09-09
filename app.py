@@ -1,14 +1,13 @@
 import os
 import streamlit as st
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from pydantic import BaseModel
-from groq import Groq  # استخدام Groq السريع والخفيف
+from groq import Groq
 
-# تهيئة FastAPI (لو حابب يستقبل طلبات API)
 app = FastAPI()
 
-# تهيئة عميل Groq (بيسحب المفتاح من البيئة أوتوماتيك)
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+# استخدام المفتاح اللي حطيناه في الـ Secrets أوتوماتيك
+client = Groq(api_key=st.secrets.get("GROQ_API_KEY", os.environ.get("GROQ_API_KEY")))
 
 class QueryModel(BaseModel):
     question: str
@@ -16,11 +15,9 @@ class QueryModel(BaseModel):
 @app.post("/chat")
 def chat_endpoint(data: QueryModel):
     user_input = data.question
-    
-    # منطق الـ RAG والرد الذكي
     try:
         completion = client.chat.completions.create(
-            model="qwen-2.5-32b",  # موديل قوي وسريع جداً على Groq
+            model="qwen-2.5-32b",
             messages=[
                 {
                     "role": "system",
@@ -36,7 +33,7 @@ def chat_endpoint(data: QueryModel):
         )
         bot_answer = completion.choices[0].message.content
     except Exception as e:
-        bot_answer = f"عذراً، حدث خطأ في الاتصال بالذكاء الاصطناعي: {str5(e)}"
+        bot_answer = f"عذراً، حدث خطأ في الاتصال: {str(e)}"
 
     return {
         "question": user_input,
@@ -44,7 +41,6 @@ def chat_endpoint(data: QueryModel):
         "retrieved_context": "Groq Cloud API Mode"
     }
 
-# الدالة الوسيطة لربطها بملف web_chat.py مباشرة على Streamlit
 def get_answer(question: str) -> str:
     query_obj = QueryModel(question=question)
     response_dict = chat_endpoint(query_obj)
