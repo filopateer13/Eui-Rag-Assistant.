@@ -1,9 +1,5 @@
-streamlit
+groq
 fastapi
 uvicorn
-langchain
-langchain-community
-chromadb
-openai
+streamlit
 pydantic
-requests
